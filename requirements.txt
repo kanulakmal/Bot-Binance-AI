@@ -1,5 +1,5 @@
 Flask==2.3.3
 python-binance==1.0.19
 requests==2.31.0
-ccxt==3.2.56
+ccxt==2.9.3
 
