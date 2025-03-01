@@ -1,13 +1,13 @@
-
 from flask import Flask
-import ccxt
-import pyngrok
+import os
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return 'Hello, Bot Binance AI Running!'
+    return "Hello, Bot Binance AI is Online!"
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+
