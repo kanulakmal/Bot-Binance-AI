@@ -18,17 +18,10 @@ def webhook():
     print("⚡ Webhook Diterima:", request.json)
     return "Webhook OK!", 200
 
-# Tambahin route manual buat test Autotrade
-@app.route('/run-autotrade', methods=['GET'])
-def run_autotrade():
-    autotrade()
-    return "Autotrade triggered!", 200
-
 # Scheduler 15 Menit
 scheduler = BackgroundScheduler()
 scheduler.add_job(autotrade, 'interval', minutes=15)
 scheduler.start()
-
 print("Scheduler is running...")
 
 if __name__ == '__main__':
