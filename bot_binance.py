@@ -2,12 +2,19 @@ from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 import datetime
+import pytz
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+tz = pytz.timezone("Asia/Jakarta")
+os.environ['TZ'] = 'Asia/Jakarta'
+print("Timezone Set to Asia/Jakarta")
 
 app = Flask(__name__)
 
 # Fungsi Autotrade
 def autotrade():
-    print(f"[DEBUG] Autotrade Running at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"[DEBUG] Autotrade Running at {datetime.datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')}")
     # Logic Autotrade Buy dan Sell disini
 
 @app.route('/')
@@ -20,7 +27,7 @@ scheduler.add_job(autotrade, 'interval', minutes=15)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    
+
     if not scheduler.running:
         scheduler.start()
         print("Scheduler is force started...")
