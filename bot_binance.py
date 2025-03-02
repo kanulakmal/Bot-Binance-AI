@@ -25,6 +25,12 @@ def home():
 scheduler = BackgroundScheduler()
 scheduler.add_job(autotrade, 'interval', minutes=15)
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    data = request.json
+    print(f"Webhook Received: {data}")
+    return jsonify({"message": "Webhook received"}), 200
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
 
