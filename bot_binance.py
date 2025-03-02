@@ -1,37 +1,53 @@
 import os
 import logging
-import time
 import requests
+import json
+from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from pytz import timezone
-from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask, request
 
-# Tambahin Timezone WIB
+# Logging
 logging.basicConfig(level=logging.DEBUG)
-os.environ['TZ'] = 'Asia/Jakarta'
-print("Timezone Set to Asia/Jakarta")
 
-# Fungsi untuk Autotrade Buy
+# Timezone WIB
+WIB = timezone("Asia/Jakarta")
+
+# API URL BINANCE
+api_url = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+
+# Webhook Endpoint
+WEBHOOK_URL = os.getenv("RENDER_EXTERNAL_URL") + "/webhook"
+
+app = Flask(__name__)
+
 def autotrade_buy():
     logging.info("Running Autotrade Buy")
-    now = datetime.now()
-    logging.info(f"Current Time: {now}")
-    # Simulasi Buy
+    current_time = datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S")
+    logging.info(f"Current Time: {current_time}")
     try:
-        webhook_url = os.getenv("WEBHOOK_URL", "http://localhost:8000/webhook")
-        response = requests.post(webhook_url, json={"action": "buy"})
-        logging.info(f"Webhook Response: {response.status_code} - {response.text}")
+        response = requests.get(api_url)
+        data = response.json()
+        price = float(data['price'])
+        logging.info(f"BTC Price: {price}")
+
+        # Trigger Webhook
+        webhook_data = {"price": price, "action": "buy"}
+        logging.info(f"Sending Webhook to {WEBHOOK_URL}")
+        webhook_response = requests.post(WEBHOOK_URL, json=webhook_data)
+        logging.info(f"Webhook Response: {webhook_response.status_code}")
     except Exception as e:
         logging.error(f"Error: {e}")
 
-# Setup Scheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(autotrade_buy, 'interval', minutes=1)  # Setiap 1 menit
+scheduler.add_job(autotrade_buy, 'interval', minutes=1)
 scheduler.start()
 
-try:
-    while True:
-        time.sleep(1)
-except (KeyboardInterrupt, SystemExit):
-    scheduler.shutdown()
-    logging.info("Scheduler stopped")
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.json
+    logging.info(f"Received Webhook Data: {data}")
+    return {"message": "Webhook received"}, 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
