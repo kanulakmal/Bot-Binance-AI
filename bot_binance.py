@@ -35,7 +35,7 @@ def webhook():
     return {"status": "Webhook Received"}
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(autotrade_buy, "interval", minutes=1)
+scheduler.add_job(autotrade_buy, "interval", minutes=15)
 scheduler.start()
 
 if __name__ == "__main__":
