@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 import datetime
@@ -7,23 +7,25 @@ app = Flask(__name__)
 
 # Fungsi Autotrade
 def autotrade():
-    print(f"🔥 Running Autotrade... {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"[DEBUG] Autotrade Running at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    # Logic Autotrade Buy dan Sell disini
 
 @app.route('/')
 def home():
-    return "✅ Bot Binance AI is Online!"
+    return "Hello, Bot Binance AI is Online!"
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    print("⚡ Webhook Diterima:", request.json)
-    return "Webhook OK!", 200
-
-# Scheduler 15 Menit
+# Jadwalin bot tiap 15 menit
 scheduler = BackgroundScheduler()
 scheduler.add_job(autotrade, 'interval', minutes=15)
-scheduler.start()
-print("Scheduler is running...")
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    
+    if not scheduler.running:
+        scheduler.start()
+        print("Scheduler is force started...")
+    else:
+        print("Scheduler already running...")
+
+    print("Scheduler is running...")
+    app.run(host='0.0.0.0', port=port)  # Fix port for Render
