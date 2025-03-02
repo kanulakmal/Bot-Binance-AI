@@ -23,7 +23,7 @@ def home():
 
 # Jadwalin bot tiap 15 menit
 scheduler = BackgroundScheduler()
-scheduler.add_job(autotrade, 'interval', minutes=15)
+scheduler.add_job(autotrade, 'interval', minutes=1)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
