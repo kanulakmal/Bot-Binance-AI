@@ -1,38 +1,37 @@
-from flask import Flask
-from apscheduler.schedulers.background import BackgroundScheduler
 import os
-import datetime
-import pytz
 import logging
+import time
+import requests
+from datetime import datetime
+from pytz import timezone
+from apscheduler.schedulers.background import BackgroundScheduler
 
+# Tambahin Timezone WIB
 logging.basicConfig(level=logging.DEBUG)
-tz = pytz.timezone("Asia/Jakarta")
 os.environ['TZ'] = 'Asia/Jakarta'
 print("Timezone Set to Asia/Jakarta")
 
-app = Flask(__name__)
+# Fungsi untuk Autotrade Buy
+def autotrade_buy():
+    logging.info("Running Autotrade Buy")
+    now = datetime.now()
+    logging.info(f"Current Time: {now}")
+    # Simulasi Buy
+    try:
+        webhook_url = os.getenv("WEBHOOK_URL", "http://localhost:8000/webhook")
+        response = requests.post(webhook_url, json={"action": "buy"})
+        logging.info(f"Webhook Response: {response.status_code} - {response.text}")
+    except Exception as e:
+        logging.error(f"Error: {e}")
 
-# Fungsi Autotrade
-def autotrade():
-    print(f"[DEBUG] Autotrade Running at {datetime.datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')}")
-    # Logic Autotrade Buy dan Sell disini
-
-@app.route('/')
-def home():
-    return "Hello, Bot Binance AI is Online!"
-
-# Jadwalin bot tiap 15 menit
+# Setup Scheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(autotrade, 'interval', minutes=1)
+scheduler.add_job(autotrade_buy, 'interval', minutes=1)  # Setiap 1 menit
+scheduler.start()
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-
-    if not scheduler.running:
-        scheduler.start()
-        print("Scheduler is force started...")
-    else:
-        print("Scheduler already running...")
-
-    print("Scheduler is running...")
-    app.run(host='0.0.0.0', port=port)  # Fix port for Render
+try:
+    while True:
+        time.sleep(1)
+except (KeyboardInterrupt, SystemExit):
+    scheduler.shutdown()
+    logging.info("Scheduler stopped")
